@@ -1,0 +1,65 @@
+[
+  {
+    "name": "submissions",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text"
+      },
+      {
+        "name": "kind",
+        "type": "text",
+        "options": [
+          "correction",
+          "announcement"
+        ]
+      },
+      {
+        "name": "event_id",
+        "type": "text",
+        "description": "Listing being corrected (correction only)"
+      },
+      {
+        "name": "field",
+        "type": "text"
+      },
+      {
+        "name": "title",
+        "type": "text"
+      },
+      {
+        "name": "state",
+        "type": "text"
+      },
+      {
+        "name": "city",
+        "type": "text"
+      },
+      {
+        "name": "public_venue",
+        "type": "text"
+      },
+      {
+        "name": "event_date",
+        "type": "text"
+      },
+      {
+        "name": "details",
+        "type": "rich_text"
+      },
+      {
+        "name": "source_url",
+        "type": "text"
+      },
+      {
+        "name": "review_status",
+        "type": "text",
+        "options": [
+          "pending_review",
+          "accepted",
+          "rejected"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Awaaz — Know the cause. Check the facts. Find your voice.</title>
+<meta name="description" content="Awaaz: an independent, non-partisan India protest discovery prototype built on public reporting, with evidence labels and a peaceful multilingual slogan studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Serif+Devanagari:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+
+<header id="site-header">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">आ</span>
+    <div>
+      <h1 class="brand-name">Awaaz</h1>
+      <p class="brand-tagline">Know the cause. Check the facts. Find your voice.</p>
+    </div>
+  </div>
+  <nav id="main-nav" aria-label="Main sections">
+    <button class="nav-tab is-active" data-view="atlas" aria-current="page"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Atlas</button>
+    <button class="nav-tab" data-view="reporting"><i class="fa-regular fa-newspaper" aria-hidden="true"></i> Latest reporting</button>
+    <button class="nav-tab" data-view="studio"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> Slogan studio</button>
+    <button class="nav-tab" data-view="submit"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i> Submit update</button>
+    <button class="nav-tab" data-view="method"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> How it works</button>
+  </nav>
+  <div class="pipeline-status" title="This prototype has no deployed scheduler. Nothing is ingested in the background.">
+    <span class="status-dot-off" aria-hidden="true"></span>
+    <span>Automatic ingestion: <strong>Not configured</strong></span>
+  </div>
+</header>
+
+<main id="main-content">
+
+<!-- ================= ATLAS ================= -->
+<section id="view-atlas" class="view is-active" aria-labelledby="atlas-heading">
+  <h2 id="atlas-heading" class="sr-only">Protest atlas</h2>
+  <div class="demo-banner" role="note">
+    <i class="fa-solid fa-flask" aria-hidden="true"></i>
+    <p><strong>Fictional demo map.</strong> Every marker below is an invented record used to test the interface — none are real events. Real retrieved articles appear unmapped in <button class="link-btn" data-goto="reporting">Latest reporting</button>.</p>
+  </div>
+
+  <div class="mobile-toggle" role="group" aria-label="Map or list view">
+    <button id="toggle-map" class="seg is-active" aria-pressed="true"><i class="fa-solid fa-map" aria-hidden="true"></i> Map</button>
+    <button id="toggle-list" class="seg" aria-pressed="false"><i class="fa-solid fa-list" aria-hidden="true"></i> List</button>
+    <button id="toggle-filters" class="seg seg-filter" aria-expanded="false" aria-controls="filter-panel"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Filters <span id="filter-count-badge" class="count-badge" hidden></span></button>
+  </div>
+
+  <div class="atlas-layout" id="atlas-layout" data-mobile="map">
+    <aside id="atlas-sidebar" aria-label="Filters and results">
+      <form id="filter-panel" class="filter-panel" role="search" onsubmit="return false;">
+        <div class="field">
+          <label for="filter-search">Search</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input id="filter-search" type="search" placeholder="Cause, city, demand…" autocomplete="off">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="filter-state">State / UT</label>
+            <select id="filter-state"><option value="">All states</option></select>
+          </div>
+          <div class="field">
+            <label for="filter-cause">Cause</label>
+            <select id="filter-cause"><option value="">All causes</option></select>
+          </div>
+        </div>
+        <fieldset class="field">
+          <legend>Event status</legend>
+          <div class="chip-group" id="filter-status"></div>
+        </fieldset>
+        <fieldset class="field">
+          <legend>Evidence</legend>
+          <div class="chip-group" id="filter-evidence"></div>
+        </fieldset>
+        <div class="field-row">
+          <div class="field">
+            <label for="filter-from">Event from</label>
+            <input id="filter-from" type="date">
+          </div>
+          <div class="field">
+            <label for="filter-to">Event to</label>
+            <input id="filter-to" type="date">
+          </div>
+        </div>
+        <div class="filter-footer">
+          <label class="check"><input type="checkbox" id="filter-followed"> Followed causes only</label>
+          <button type="button" id="filter-reset" class="btn-text">Reset</button>
+        </div>
+      </form>
+
+      <div class="results-head">
+        <p id="results-count" aria-live="polite">—</p>
+        <select id="sort-select" aria-label="Sort results">
+          <option value="eventStart">Sort: event date</option>
+          <option value="lastFetchedAt">Sort: last checked</option>
+          <option value="state">Sort: state</option>
+        </select>
+      </div>
+      <ol id="event-list" class="event-list" aria-label="Event cards"></ol>
+    </aside>
+
+    <div class="map-wrap">
+      <div id="map" role="region" aria-label="Map of India with fictional demo event markers"></div>
+      <div class="map-legend" aria-label="Map legend">
+        <p class="legend-title">Status (shape + letter)</p>
+        <ul>
+          <li><span class="mk mk-announced"><b>A</b></span> Announced</li>
+          <li><span class="mk mk-ongoing"><b>O</b></span> Reported ongoing</li>
+          <li><span class="mk mk-ended"><b>E</b></span> Ended</li>
+          <li><span class="mk mk-unknown"><b>?</b></span> Unknown</li>
+          <li><span class="mk-city" aria-hidden="true"></span> Dashed ring = city-level only</li>
+        </ul>
+      </div>
+      <div id="map-empty" class="map-empty" hidden>
+        <i class="fa-regular fa-map" aria-hidden="true"></i>
+        <p><strong>No sourced events found for these filters.</strong></p>
+        <p>We never add placeholder events to fill the map.</p>
+      </div>
+    </div>
+
+    <!-- Detail panel (desktop slide-in / mobile bottom sheet) -->
+    <aside id="detail-panel" class="detail-panel" aria-label="Event details" aria-hidden="true" tabindex="-1">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <button id="detail-close" class="icon-btn detail-close" aria-label="Close details"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <div id="detail-body"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= LATEST REPORTING ================= -->
+<section id="view-reporting" class="view page" aria-labelledby="reporting-heading">
+  <div class="page-inner">
+    <header class="page-head">
+      <p class="eyebrow">Real data · unverified · not mapped</p>
+      <h2 id="reporting-heading">Latest reporting</h2>
+      <p class="lede">Headlines retrieved from the public <a href="https://www.gdeltproject.org/" target="_blank" rel="noopener">GDELT</a> DOC 2.0 news-search API, fetched directly by your browser when you press refresh. These are <strong>discovery leads, not events</strong>: a keyword match does not prove an article describes a protest, and the date shown is when GDELT first saw the article — not when any gathering happened.</p>
+    </header>
+
+    <div class="reporting-controls">
+      <div class="field">
+        <label for="gdelt-lang">Language</label>
+        <select id="gdelt-lang">
+          <option value="english">English-language reporting</option>
+          <option value="hindi">Hindi-language reporting</option>
+          <option value="marathi">Marathi-language reporting</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="gdelt-span">Window</label>
+        <select id="gdelt-span">
+          <option value="1d">Last 24 hours</option>
+          <option value="3d" selected>Last 3 days</option>
+          <option value="7d">Last 7 days</option>
+        </select>
+      </div>
+      <button id="gdelt-refresh" class="btn btn-primary"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Fetch now</button>
+      <label class="check"><input type="checkbox" id="gdelt-hide-weak" checked> Hide headlines without a protest term</label>
+    </div>
+
+    <div class="fetch-meta" id="gdelt-meta" aria-live="polite">Not fetched yet in this session.</div>
+    <p class="fine">Manual fetch only. Refreshing this page is <em>not</em> a background pipeline. Query: <code id="gdelt-query">—</code></p>
+
+    <div id="gdelt-state" class="state-box" hidden></div>
+    <ol id="gdelt-list" class="article-list"></ol>
+  </div>
+</section>
+
+<!-- ================= SLOGAN STUDIO ================= -->
+<section id="view-studio" class="view page" aria-labelledby="studio-heading">
+  <div class="page-inner studio-grid">
+    <div class="studio-controls">
+      <header class="page-head">
+        <p class="eyebrow">Peaceful expression toolkit</p>
+        <h2 id="studio-heading">Slogan studio</h2>
+        <p class="lede">Generate six editable, peaceful options. <span class="tag tag-warn">Template-based generator — not AI</span></p>
+      </header>
+
+      <form id="studio-form" onsubmit="return false;">
+        <div class="field">
+          <label for="studio-cause">Cause or demand</label>
+          <select id="studio-cause"></select>
+        </div>
+        <div class="field" id="custom-cause-field" hidden>
+          <label for="studio-custom">Your cause (short noun phrase)</label>
+          <input id="studio-custom" type="text" maxlength="40" placeholder="e.g. safer footpaths / सुरक्षित फुटपाथ">
+          <p class="fine">Used as written in every language. Keep it about the issue, not a person.</p>
+        </div>
+        <fieldset class="field">
+          <legend>Language</legend>
+          <div class="chip-group" id="studio-lang" role="radiogroup"></div>
+        </fieldset>
+        <fieldset class="field">
+          <legend>Tone</legend>
+          <div class="chip-group" id="studio-tone" role="radiogroup"></div>
+        </fieldset>
+        <fieldset class="field">
+          <legend>Format</legend>
+          <div class="chip-group" id="studio-format" role="radiogroup"></div>
+        </fieldset>
+        <div id="studio-warning" class="state-box state-error" hidden role="alert"></div>
+        <button id="studio-generate" class="btn btn-primary btn-wide"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Generate six options</button>
+      </form>
+
+      <aside class="guardrails">
+        <h3>Studio rules</h3>
+        <ul>
+          <li>No threats, hate, or calls for harm.</li>
+          <li>No names, phone numbers, or addresses of individuals.</li>
+          <li>No unsupported factual accusations.</li>
+          <li>Outputs are user-generated expression, not Awaaz's position.</li>
+          <li>Ask a fluent speaker to review mixed-language wordplay.</li>
+        </ul>
+      </aside>
+    </div>
+
+    <div class="studio-output">
+      <div class="output-head">
+        <h3>Your options</h3>
+        <p class="fine">Click any text to edit it.</p>
+      </div>
+      <ol id="slogan-list" class="slogan-list"></ol>
+
+      <div class="poster-wrap">
+        <div class="output-head">
+          <h3>Poster preview</h3>
+          <div class="poster-themes" role="radiogroup" aria-label="Poster theme" id="poster-themes"></div>
+        </div>
+        <canvas id="poster-canvas" width="1080" height="1350" aria-label="Poster preview of selected slogan" role="img"></canvas>
+        <div class="poster-actions">
+          <button id="poster-download" class="btn btn-secondary"><i class="fa-solid fa-download" aria-hidden="true"></i> Download PNG</button>
+          <p class="fine">Rendered in your browser. Footer reads “User-generated slogan”.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SUBMIT ================= -->
+<section id="view-submit" class="view page" aria-labelledby="submit-heading">
+  <div class="page-inner narrow">
+    <header class="page-head">
+      <p class="eyebrow">Human review before anything is published</p>
+      <h2 id="submit-heading">Submit an update</h2>
+      <p class="lede">Suggest a correction to a listing, or share a <strong>publicly announced</strong> gathering. Submissions go into a review queue and are <strong>never auto-published</strong>.</p>
+    </header>
+
+    <form id="submit-form" class="submit-form" novalidate>
+      <fieldset class="field">
+        <legend>What are you submitting?</legend>
+        <div class="chip-group" role="radiogroup">
+          <label class="chip"><input type="radio" name="kind" value="correction" checked> Correction</label>
+          <label class="chip"><input type="radio" name="kind" value="announcement"> Public event announcement</label>
+        </div>
+      </fieldset>
+
+      <div class="field" id="sub-event-field">
+        <label for="sub-event">Listing to correct</label>
+        <select id="sub-event"></select>
+      </div>
+      <div class="field" id="sub-field-field">
+        <label for="sub-field">What is wrong?</label>
+        <select id="sub-field">
+          <option>Status</option><option>Date or time</option><option>Venue / location</option>
+          <option>Demands or summary</option><option>Source link</option><option>Should not be listed</option><option>Other</option>
+        </select>
+      </div>
+
+      <div class="announce-fields" id="announce-fields" hidden>
+        <div class="field">
+          <label for="sub-title">Event title</label>
+          <input id="sub-title" type="text" maxlength="120">
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="sub-state">State / UT</label><select id="sub-state"></select></div>
+          <div class="field"><label for="sub-city">City</label><input id="sub-city" type="text" maxlength="60"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="sub-venue">Public venue (as announced)</label><input id="sub-venue" type="text" maxlength="120" placeholder="Only if publicly announced"></div>
+          <div class="field"><label for="sub-date">Event date</label><input id="sub-date" type="date"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="sub-details">Details <span class="req">required</span></label>
+        <textarea id="sub-details" rows="4" maxlength="1000" required placeholder="What should change, and what does the source say?"></textarea>
+      </div>
+      <div class="field">
+        <label for="sub-source">Public source link <span class="req">required</span></label>
+        <input id="sub-source" type="url" required placeholder="https://… (news report or official organizer post)">
+      </div>
+
+      <div class="privacy-note">
+        <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+        <p>Do not include names, phone numbers, photos of participants, private meeting points, or anyone's live location. We don't ask for your contact details.</p>
+      </div>
+
+      <div id="submit-result" class="state-box" hidden role="status"></div>
+      <button type="submit" class="btn btn-primary btn-wide" id="submit-btn"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Send for review</button>
+    </form>
+  </div>
+</section>
+
+<!-- ================= METHOD ================= -->
+<section id="view-method" class="view page" aria-labelledby="method-heading">
+  <div class="page-inner narrow prose">
+    <header class="page-head">
+      <p class="eyebrow">Methodology & limits</p>
+      <h2 id="method-heading">What do we actually know?</h2>
+      <p class="lede">Awaaz promises <strong>auto-updating news coverage</strong> as a goal, not “every protest live.” News feeds cannot establish that a gathering is still happening or where a crowd is right now.</p>
+    </header>
+
+    <h3>Three separate questions on every listing</h3>
+    <div class="three-col">
+      <div class="explainer"><p class="eyebrow">Event status</p><p>Announced · Reported ongoing · Ended · Unknown. Taken only from what sources say.</p></div>
+      <div class="explainer"><p class="eyebrow">Evidence</p><p>News report · Organizer announcement · Unreviewed submission.</p></div>
+      <div class="explainer"><p class="eyebrow">Freshness</p><p>When the source was published, and when our system last checked it. “Checked 2 minutes ago” ≠ “confirmed active 2 minutes ago”.</p></div>
+    </div>
+
+    <h3>Current prototype status</h3>
+    <table class="status-table">
+      <thead><tr><th scope="col">Component</th><th scope="col">State</th></tr></thead>
+      <tbody>
+        <tr><td>Map records</td><td><span class="tag tag-warn">Fictional demo</span></td></tr>
+        <tr><td>GDELT news retrieval</td><td><span class="tag">Live, manual, browser-side</span> — unmapped, unverified</td></tr>
+        <tr><td>Event extraction & grouping</td><td><span class="tag tag-off">Not built</span></td></tr>
+        <tr><td>15-minute ingestion job</td><td><span class="tag tag-off">Not configured</span> — needs a deployed backend + scheduler</td></tr>
+        <tr><td>Submissions</td><td><span class="tag">Stored in review queue</span> — never auto-published</td></tr>
+        <tr><td>Slogan generation</td><td><span class="tag tag-warn">Templates, not AI</span></td></tr>
+        <tr><td>Notifications</td><td><span class="tag tag-off">Not built</span> — “Follow” saves locally only</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Proposed production pipeline</h3>
+    <ol class="pipeline">
+      <li>News discovery (GDELT DOC/GEO) + permitted publisher feeds + public announcements — every 15 min on a server scheduler</li>
+      <li>Extract candidate event details with supporting excerpts</li>
+      <li>Reject irrelevant stories; separate event date from article date; distinguish past vs future</li>
+      <li>Group reports about the same event</li>
+      <li>Human review of new events, location changes, and conflicting claims</li>
+      <li>Publish cards with summaries, source links, and timestamps — never full copied articles</li>
+    </ol>
+    <p>Discovery terms: <em>protest, demonstration, dharna, march, strike, आंदोलन, धरना, मोर्चा</em>. These find candidates; they don't prove anything.</p>
+
+    <h3>Safety rules</h3>
+    <ul>
+      <li>No attendee GPS, attendance tracking, participant identities, private meeting points, or moving-crowd tracking.</li>
+      <li>Directions only for explicitly published public venues with current, reviewed information.</li>
+      <li>City-only information gets a coarse marker and no route.</li>
+      <li>Conflicting sources are flagged, not silently resolved.</li>
+      <li>Neutral listing rules across causes and viewpoints. Awaaz is independent and non-partisan.</li>
+    </ul>
+
+    <h3>Data sources considered</h3>
+    <ul>
+      <li><a href="https://www.gdeltproject.org/data.html" target="_blank" rel="noopener">GDELT</a> — 15-minute updates; DOC & GEO APIs. Used here for browser-side discovery.</li>
+      <li><a href="https://acleddata.com/" target="_blank" rel="noopener">ACLED</a> — weekly; for historical context and cross-checking, subject to access terms.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<!-- Evidence modal -->
+<div id="evidence-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="evidence-title" hidden>
+  <div class="modal-card">
+    <button class="icon-btn modal-close" data-close-modal aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <div id="evidence-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/atlas.js"></script>
+<script src="js/news.js"></script>
+<script src="js/slogans.js"></script>
+<script src="js/submit.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
